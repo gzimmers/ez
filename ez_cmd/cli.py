@@ -1,12 +1,9 @@
 import click
 import subprocess
 import sys
-from .config import Config
+from .config import Config, RESERVED_COMMANDS
 
 config = Config()
-
-# Reserved command names that can't be saved
-RESERVED_COMMANDS = {'save', 'list', 'update', 'delete', 'append', 'pop'}
 
 class EzCLI(click.MultiCommand):
     def list_commands(self, ctx):
@@ -27,6 +24,47 @@ class EzCLI(click.MultiCommand):
                 config.add_command(name, command)
                 click.echo(f"Saved command '{name}'")
             return save
+
+        elif cmd_name == 'rename':
+            @click.command()
+            @click.argument('old_name')
+            @click.argument('new_name')
+            def rename(old_name, new_name):
+                """Rename a command while preserving its aliases."""
+                if new_name in RESERVED_COMMANDS:
+                    click.echo(f"Cannot rename to '{new_name}': it is a reserved command name.", err=True)
+                    sys.exit(1)
+                if config.rename_command(old_name, new_name):
+                    click.echo(f"Renamed command '{old_name}' to '{new_name}'")
+                else:
+                    click.echo(f"Command '{old_name}' not found or invalid new name.", err=True)
+                    sys.exit(1)
+            return rename
+
+        elif cmd_name == 'alias':
+            @click.command()
+            @click.option('-d', '--delete', is_flag=True, help='Delete the alias')
+            @click.argument('command_name')
+            @click.argument('alias')
+            def alias(delete, command_name, alias):
+                """Add or remove an alias for a command."""
+                if alias in RESERVED_COMMANDS:
+                    click.echo(f"Cannot use '{alias}' as an alias: it is a reserved command name.", err=True)
+                    sys.exit(1)
+
+                if delete:
+                    if config.remove_alias(command_name, alias):
+                        click.echo(f"Removed alias '{alias}' from command '{command_name}'")
+                    else:
+                        click.echo(f"Alias '{alias}' not found for command '{command_name}'", err=True)
+                        sys.exit(1)
+                else:
+                    if config.add_alias(command_name, alias):
+                        click.echo(f"Added alias '{alias}' for command '{command_name}'")
+                    else:
+                        click.echo(f"Command '{command_name}' not found", err=True)
+                        sys.exit(1)
+            return alias
 
         elif cmd_name == 'append':
             @click.command()
@@ -71,9 +109,13 @@ class EzCLI(click.MultiCommand):
                 click.echo("\n" + click.style("📋 Saved Commands", fg="blue", bold=True))
                 click.echo(click.style("═" * 50, fg="blue"))
 
-                for name, cmds in sorted(commands.items()):
-                    # Command name header
-                    click.echo("\n" + click.style(f"▶ {name}", fg="green", bold=True))
+                for name, (cmds, aliases) in sorted(commands.items()):
+                    # Command name header with aliases if present
+                    header = f"▶ {name}"
+                    if aliases:
+                        alias_list = ", ".join(sorted(aliases))
+                        header += click.style(f" (aliases: {alias_list})", fg="yellow")
+                    click.echo("\n" + click.style(header, fg="green", bold=True))
                     
                     # Print each operation with proper indentation
                     for i, cmd in enumerate(cmds, 1):
@@ -113,7 +155,7 @@ class EzCLI(click.MultiCommand):
                     click.echo(f"Cannot delete command: '{name}' is a reserved command name.", err=True)
                     sys.exit(1)
                 if config.delete_command(name):
-                    click.echo(f"Deleted command '{name}'")
+                    click.echo(f"Deleted command '{name}' and its aliases")
                 else:
                     click.echo(f"Command '{name}' not found.", err=True)
                     sys.exit(1)
