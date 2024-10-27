@@ -18,7 +18,12 @@ class Config:
     def _load_commands(self):
         """Load commands from the config file."""
         try:
-            return json.loads(self.config_file.read_text())
+            commands = json.loads(self.config_file.read_text())
+            # Convert any string commands to lists for backward compatibility
+            for name, cmd in commands.items():
+                if isinstance(cmd, str):
+                    commands[name] = [cmd]
+            return commands
         except json.JSONDecodeError:
             return {}
 
@@ -28,10 +33,28 @@ class Config:
 
     def add_command(self, name: str, command: str):
         """Add a new command."""
-        self.commands[name] = command
+        self.commands[name] = [command]
         self._save_commands()
 
-    def get_command(self, name: str) -> str:
+    def append_command(self, name: str, command: str):
+        """Append a command to an existing command sequence."""
+        if name in self.commands:
+            self.commands[name].append(command)
+            self._save_commands()
+            return True
+        return False
+
+    def pop_command(self, name: str):
+        """Remove the last command from a command sequence."""
+        if name in self.commands and self.commands[name]:
+            self.commands[name].pop()
+            if not self.commands[name]:  # If no commands left, delete the entry
+                del self.commands[name]
+            self._save_commands()
+            return True
+        return False
+
+    def get_command(self, name: str) -> list:
         """Get a command by name."""
         return self.commands.get(name)
 
@@ -42,7 +65,7 @@ class Config:
     def update_command(self, name: str, command: str):
         """Update an existing command."""
         if name in self.commands:
-            self.commands[name] = command
+            self.commands[name] = [command]
             self._save_commands()
             return True
         return False
