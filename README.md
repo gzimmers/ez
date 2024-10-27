@@ -65,6 +65,24 @@ Show all saved commands:
 ez list
 ```
 
+### Command Arguments
+
+Commands can include argument placeholders that are replaced when executing the command. Use `{0}`, `{1}`, etc. to define argument positions:
+
+```bash
+# Save a command with one argument
+ez save list-files "ls {0}"
+ez list-files /path/to/dir
+
+# Save a command with multiple arguments
+ez save copy-file "cp {0} {1}"
+ez copy-file source.txt destination.txt
+
+# Use in command sequences
+ez save build-project "cd {0} && npm install && npm run build"
+ez build-project ./my-project
+```
+
 ### Examples
 
 Save a simple command:
@@ -87,6 +105,17 @@ ez alias serve dev
 ez alias serve start
 ```
 
+Save commands with arguments:
+```bash
+# Create a command for searching files
+ez save find-in "grep -r {0} {1}"
+ez find-in "TODO" ./src
+
+# Create a command for git operations
+ez save commit "git add . && git commit -m {0}"
+ez commit "Updated documentation"
+```
+
 Execute a saved command or alias:
 ```bash
 ez deploy    # Runs the deploy sequence
@@ -100,7 +129,7 @@ Commands are stored in a JSON configuration file located at `~/.ez-cmd/config.js
 ## Command Overview
 
 - **Command Management**
-  - `save`: Save a new command
+  - `save`: Save a new command (supports argument placeholders)
   - `update`: Update an existing command
   - `delete`: Delete a command and its aliases
   - `rename`: Rename a command while keeping its aliases

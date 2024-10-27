@@ -11,7 +11,7 @@ Commands are organized into the following groups:
 
 \b
 Command Management:
-  save NAME CMD        Save a new command
+  save NAME CMD        Save a new command (use {0}, {1}, etc. for arguments)
   update NAME CMD      Update an existing command
   delete NAME         Delete a command and its aliases
   rename OLD NEW      Rename a command while keeping its aliases
@@ -28,7 +28,12 @@ Sequence Management:
 
 \b
 Utility:
-  list               Show all saved commands"""
+  list               Show all saved commands
+
+\b
+Arguments:
+  Commands can include argument placeholders ({0}, {1}, etc.)
+  which are replaced when executing the command."""
 
 class EzCLI(click.MultiCommand):
     def list_commands(self, ctx):
@@ -38,7 +43,7 @@ class EzCLI(click.MultiCommand):
     def get_command(self, ctx, cmd_name):
         # Check for built-in commands first
         if cmd_name == 'save':
-            @click.command(help="Save a new command")
+            @click.command(help="Save a new command (use {0}, {1}, etc. for arguments)")
             @click.argument('name')
             @click.argument('command')
             def save(name, command):
