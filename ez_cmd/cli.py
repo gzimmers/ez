@@ -187,21 +187,29 @@ class EzCLI(click.MultiCommand):
                 click.echo()
             return list
 
-        # If not a built-in command, check if it's a saved command
         cmds = config.get_command(cmd_name)
         if cmds:
-            @click.command()
-            def saved_command():
-                """Run a saved command sequence."""
+            @click.command(context_settings=dict(
+                ignore_unknown_options=True,
+            ))
+            @click.argument('args', nargs=-1, type=click.UNPROCESSED)
+            def saved_command(args):
+                """Run a saved command sequence with arguments."""
                 for cmd in cmds:
                     try:
-                        result = subprocess.run(cmd, shell=True)
+                        # Use str.format to replace placeholders
+                        formatted_cmd = cmd.format(*args)
+                        result = subprocess.run(formatted_cmd, shell=True)
                         if result.returncode != 0:
                             sys.exit(result.returncode)
+                    except IndexError:
+                        click.echo(f"Error: Not enough arguments provided for command '{cmd}'", err=True)
+                        sys.exit(1)
                     except Exception as e:
                         click.echo(f"Error executing command: {e}", err=True)
                         sys.exit(1)
             return saved_command
+
 
         return None
 
