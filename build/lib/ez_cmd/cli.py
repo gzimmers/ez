@@ -11,15 +11,15 @@ Commands are organized into the following groups:
 
 \b
 Command Management:
-  save (s) NAME CMD     Save a new command (use {0}, {1}, etc. for arguments)
-  update (u) NAME CMD   Update an existing command
-  delete (d) NAME       Delete a command and its aliases
-  rename (r) OLD NEW    Rename a command while keeping its aliases
+  save NAME CMD        Save a new command (use {0}, {1}, etc. for arguments)
+  update NAME CMD      Update an existing command
+  delete NAME         Delete a command and its aliases
+  rename OLD NEW      Rename a command while keeping its aliases
 
 \b
 Alias Management:
-  alias (a) NAME ALIAS          Add an alias for a command
-  alias -d (a -d) NAME ALIAS    Remove a command alias
+  alias NAME ALIAS     Add an alias for a command
+  alias -d NAME ALIAS  Remove a command alias
 
 \b
 Sequence Management:
@@ -28,19 +28,12 @@ Sequence Management:
 
 \b
 Utility:
-  list (ls)           Show all saved commands
+  list               Show all saved commands
 
 \b
 Arguments:
   Commands can include argument placeholders ({0}, {1}, etc.)
-  which are replaced when executing the command.
-
-\b
-Examples:
-  ez-cmd save greet "echo Hello {0}"     # Save a command with a placeholder
-  ez-cmd greet World                     # Run command: echo Hello World
-  ez-cmd alias greet hi                  # Create alias 'hi' for 'greet'
-  ez-cmd list                            # Show all saved commands"""
+  which are replaced when executing the command."""
 
 class EzCLI(click.MultiCommand):
     def list_commands(self, ctx):
@@ -49,8 +42,8 @@ class EzCLI(click.MultiCommand):
 
     def get_command(self, ctx, cmd_name):
         # Check for built-in commands first
-        if cmd_name == 'save' or cmd_name == 's':
-            @click.command(help="Save a new command (use {0}, {1}, etc. for arguments)", short_help="Save a new command")
+        if cmd_name == 'save':
+            @click.command(help="Save a new command (use {0}, {1}, etc. for arguments)")
             @click.argument('name')
             @click.argument('command')
             def save(name, command):
@@ -61,8 +54,8 @@ class EzCLI(click.MultiCommand):
                 click.echo(f"Saved command '{name}'")
             return save
 
-        elif cmd_name == 'update' or cmd_name == "u":
-            @click.command(help="Update an existing command", short_help="Update an existing command")
+        elif cmd_name == 'update':
+            @click.command(help="Update an existing command")
             @click.argument('name')
             @click.argument('command')
             def update(name, command):
@@ -76,8 +69,8 @@ class EzCLI(click.MultiCommand):
                     sys.exit(1)
             return update
 
-        elif cmd_name == 'delete' or cmd_name == 'd':
-            @click.command(help="Delete a command and its aliases", short_help="Delete a command")
+        elif cmd_name == 'delete':
+            @click.command(help="Delete a command and its aliases")
             @click.argument('name')
             def delete(name):
                 if name in RESERVED_COMMANDS:
@@ -90,8 +83,8 @@ class EzCLI(click.MultiCommand):
                     sys.exit(1)
             return delete
 
-        elif cmd_name == 'rename' or cmd_name == 'r':
-            @click.command(help="Rename a command while keeping its aliases", short_help="Rename a command")
+        elif cmd_name == 'rename':
+            @click.command(help="Rename a command while keeping its aliases")
             @click.argument('old_name')
             @click.argument('new_name')
             def rename(old_name, new_name):
@@ -105,8 +98,8 @@ class EzCLI(click.MultiCommand):
                     sys.exit(1)
             return rename
 
-        elif cmd_name == 'alias' or cmd_name == 'a':
-            @click.command(help="Add or remove command aliases", short_help="Manage command aliases")
+        elif cmd_name == 'alias':
+            @click.command(help="Add or remove command aliases")
             @click.option('-d', '--delete', is_flag=True, help='Delete the alias')
             @click.argument('command_name')
             @click.argument('alias')
@@ -130,7 +123,7 @@ class EzCLI(click.MultiCommand):
             return alias
 
         elif cmd_name == 'append':
-            @click.command(help="Add a command to an existing sequence", short_help="Add to command sequence")
+            @click.command(help="Add a command to an existing sequence")
             @click.argument('name')
             @click.argument('command')
             def append(name, command):
@@ -145,7 +138,7 @@ class EzCLI(click.MultiCommand):
             return append
 
         elif cmd_name == 'pop':
-            @click.command(help="Remove the last command from a sequence", short_help="Remove from sequence")
+            @click.command(help="Remove the last command from a sequence")
             @click.argument('name')
             def pop(name):
                 if name in RESERVED_COMMANDS:
@@ -158,8 +151,8 @@ class EzCLI(click.MultiCommand):
                     sys.exit(1)
             return pop
 
-        elif cmd_name == 'list' or cmd_name == 'ls':
-            @click.command(help="Show all saved commands", short_help="List all commands")
+        elif cmd_name == 'list':
+            @click.command(help="Show all saved commands")
             def list():
                 commands = config.list_commands()
                 if not commands:
@@ -221,6 +214,7 @@ class EzCLI(click.MultiCommand):
                         click.echo(f"Error executing command: {e}", err=True)
                         sys.exit(1)
             return saved_command
+
 
         return None
 

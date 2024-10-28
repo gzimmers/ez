@@ -4,10 +4,7 @@ from pathlib import Path
 from typing import Dict, List, Set, Optional, Tuple
 
 # Reserved command names that can't be saved
-RESERVED_COMMANDS = {
-    'save', 'list', 'update', 'delete', 'append', 'pop', 'alias', 
-    'rename', 'ls', 'a', 'd', 'r', 's', 'u'
-}
+RESERVED_COMMANDS = {'save', 'list', 'update', 'delete', 'append', 'pop', 'alias', 'rename'}
 
 class Config:
     def __init__(self):

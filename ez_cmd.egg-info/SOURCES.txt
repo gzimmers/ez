@@ -1,6 +1,7 @@
 README.md
 setup.py
 ez_cmd/__init__.py
+ez_cmd/__main__.py
 ez_cmd/cli.py
 ez_cmd/config.py
 ez_cmd.egg-info/PKG-INFO
