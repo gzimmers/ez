@@ -6,7 +6,7 @@ from typing import Dict, List, Set, Optional, Tuple
 # Reserved command names that can't be saved
 RESERVED_COMMANDS = {
     'save', 'list', 'update', 'delete', 'append', 'pop', 'alias', 
-    'rename', 'ls', 'a', 'd', 'r', 's', 'u'
+    'rename', 'ls', 'a', 'd', 'r', 's', 'u', 'replay'
 }
 
 class Config:
