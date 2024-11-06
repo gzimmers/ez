@@ -18,10 +18,11 @@ Command Management:
   update (u) NAME CMD   Update an existing command
   delete (d) NAME       Delete a command and its aliases
   rename (r) OLD NEW    Rename a command while keeping its aliases
+  copy (c) OLD NEW      Copy an existing command to a new name
 
 \b
 Alias Management:
-  alias (a) NAME ALIAS          Add an alias for a command
+  alias (a) NAME ALIAS          Add a alias for a command
   alias -d (a -d) NAME ALIAS    Remove a command alias
 
 \b
@@ -47,6 +48,7 @@ Examples:
   ez-cmd save greet "echo Hello {0}"     # Save a command with a placeholder
   ez-cmd greet World                     # Run command: echo Hello World
   ez-cmd alias greet hi                  # Create alias 'hi' for 'greet'
+  ez-cmd copy greet hello                 # Copy 'greet' command to 'hello'
   ez-cmd list                            # Show all saved commands"""
 
 class EzCLI(click.MultiCommand):
@@ -54,6 +56,8 @@ class EzCLI(click.MultiCommand):
         # Return built-in commands
         commands = RESERVED_COMMANDS.copy()
         commands.add('replay')
+        commands.add('install')  # Added 'install' to the list of commands
+        commands.add('copy')     # Added 'copy' to the list of commands
         return sorted(commands)
 
     def get_command(self, ctx, cmd_name):
@@ -283,6 +287,47 @@ class EzCLI(click.MultiCommand):
                     click.echo(f"Error reading history: {str(e)}", err=True)
                     sys.exit(1)
             return replay
+
+        elif cmd_name == 'install':
+            @click.command(help="Add 'setopt INC_APPEND_HISTORY' to your .zshrc file if it's not already present", short_help="Install shell settings")
+            def install():
+                zshrc_path = Path.home() / ".zshrc"
+                try:
+                    if zshrc_path.exists():
+                        with open(zshrc_path, 'r') as f:
+                            lines = f.readlines()
+                        if any('setopt INC_APPEND_HISTORY' in line for line in lines):
+                            click.echo("`setopt INC_APPEND_HISTORY` is already set in your `.zshrc` file.")
+                        else:
+                            with open(zshrc_path, 'a') as f:
+                                f.write('\nsetopt INC_APPEND_HISTORY\n')
+                            click.echo("Successfully added `setopt INC_APPEND_HISTORY` to your `.zshrc` file.")
+                    else:
+                        with open(zshrc_path, 'w') as f:
+                            f.write('setopt INC_APPEND_HISTORY\n')
+                        click.echo("`.zshrc` file not found. Created and added `setopt INC_APPEND_HISTORY`.")
+                except Exception as e:
+                    click.echo(f"Failed to update `.zshrc`: {e}", err=True)
+                    sys.exit(1)
+            return install
+
+        elif cmd_name == 'copy' or cmd_name == 'c':
+            @click.command(help="Copy an existing command to a new name", short_help="Copy a command")
+            @click.argument('old_name')
+            @click.argument('new_name')
+            def copy(old_name, new_name):
+                if old_name in RESERVED_COMMANDS:
+                    click.echo(f"Cannot copy command: '{old_name}' is a reserved command name.", err=True)
+                    sys.exit(1)
+                if new_name in RESERVED_COMMANDS:
+                    click.echo(f"Cannot copy to '{new_name}': it is a reserved command name.", err=True)
+                    sys.exit(1)
+                if config.copy_command(old_name, new_name):
+                    click.echo(f"Copied command '{old_name}' to '{new_name}'")
+                else:
+                    click.echo(f"Failed to copy command '{old_name}'. It may not exist or the new name '{new_name}' is already in use.", err=True)
+                    sys.exit(1)
+            return copy
 
         cmds = config.get_command(cmd_name)
         if cmds:

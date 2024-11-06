@@ -162,3 +162,14 @@ class Config:
         del self.commands[primary_name]
         self._save()
         return True
+
+    def copy_command(self, old_name: str, new_name: str) -> bool:
+        """Copy an existing command to a new name."""
+        if new_name in RESERVED_COMMANDS or new_name in self.commands or new_name in self.aliases:
+            return False
+        primary_name = self._get_primary_name(old_name)
+        if primary_name not in self.commands:
+            return False
+        self.commands[new_name] = self.commands[primary_name].copy()
+        self._save()
+        return True
