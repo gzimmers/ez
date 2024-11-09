@@ -4,6 +4,7 @@ import subprocess
 import sys
 from pathlib import Path
 from typing import List
+from . import __version__
 from .config import Config, RESERVED_COMMANDS
 
 def create_save_command(config: Config):
@@ -186,3 +187,10 @@ def create_saved_command(config: Config, cmds: List[str]):
                 click.echo(f"Error executing command: {e}", err=True)
                 sys.exit(1)
     return saved_command
+
+def create_version_command():
+    @click.command(help="Show the version number",
+                  short_help="Show version")
+    def version():
+        click.echo(f"ez-cmd version {__version__}")
+    return version

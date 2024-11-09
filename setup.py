@@ -1,8 +1,9 @@
 from setuptools import setup, find_packages
+from ez_cmd import __version__
 
 setup(
     name="ez-cmd",
-    version="1.2.0",
+    version=__version__,
     packages=find_packages(),
     include_package_data=True,
     install_requires=[

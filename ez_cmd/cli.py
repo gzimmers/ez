@@ -4,7 +4,8 @@ from .config import Config, RESERVED_COMMANDS
 from .commands import (
     create_save_command, create_update_command, create_delete_command,
     create_rename_command, create_alias_command, create_append_command,
-    create_pop_command, create_list_command, create_saved_command
+    create_pop_command, create_list_command, create_saved_command,
+    create_version_command
 )
 from .history import create_replay_command
 from .install import create_install_command
@@ -38,6 +39,7 @@ History Management:
 \b
 Utility:
   list (ls)           Show all saved commands
+  version (v)         Show the version number
 
 \b
 Arguments:
@@ -62,6 +64,8 @@ class EzCLI(click.MultiCommand):
         commands.add('replay')
         commands.add('install')
         commands.add('copy')
+        commands.add('version')
+        commands.add('v')
         return sorted(commands)
 
     def get_command(self, ctx, cmd_name):
@@ -84,6 +88,8 @@ class EzCLI(click.MultiCommand):
             'install': create_install_command,
             'copy': lambda: create_rename_command(self.config),
             'c': lambda: create_rename_command(self.config),
+            'version': create_version_command,
+            'v': create_version_command,
         }
 
         if cmd_name in command_map:

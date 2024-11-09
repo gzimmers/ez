@@ -5,10 +5,11 @@ from pathlib import Path
 from .config import Config, RESERVED_COMMANDS
 
 def create_replay_command(config: Config):
-    @click.command(help="Save a command from shell history", 
+    @click.command(help="Save a command from shell history. Optionally filter by text.", 
                   short_help="Save from history")
     @click.argument('name')
-    def replay(name):
+    @click.argument('filter_text', required=False)
+    def replay(name, filter_text):
         if name in RESERVED_COMMANDS:
             click.echo(f"Cannot save command: '{name}' is a reserved command name.", err=True)
             sys.exit(1)
@@ -29,13 +30,18 @@ def create_replay_command(config: Config):
                 cmd = line.strip()
                 # Skip empty commands and ez commands
                 if cmd and not cmd.startswith('ez '):
-                    commands.append(cmd)
+                    # If filter_text is provided, only include commands that contain it
+                    if not filter_text or filter_text.lower() in cmd.lower():
+                        commands.append(cmd)
 
             # Reverse to show most recent first
             commands = list(reversed(commands))
 
             if not commands:
-                click.echo("No commands found in history.", err=True)
+                if filter_text:
+                    click.echo(f"No commands found matching '{filter_text}'.", err=True)
+                else:
+                    click.echo("No commands found in history.", err=True)
                 sys.exit(1)
 
             # Show commands with pagination
@@ -48,6 +54,8 @@ def create_replay_command(config: Config):
                 current_commands = commands[start_idx:end_idx]
 
                 click.echo(click.style("\nRecent Commands:", fg="blue", bold=True))
+                if filter_text:
+                    click.echo(click.style(f"Filtered by: {filter_text}", fg="yellow"))
                 click.echo(click.style("═" * 50, fg="blue"))
                 
                 for idx, cmd in enumerate(current_commands, start=1):
