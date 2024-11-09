@@ -1,3 +1,0 @@
-[console_scripts]
-ez = ez_cmd.cli:cli
-
