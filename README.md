@@ -1,6 +1,6 @@
 # ez-cmd
 
-A simple CLI tool that allows you to save and replay commands easily across different systems.
+A simple CLI tool that allows you to save and replay commands that are normally tedious and require more keystrokes.
 
 ## Installation
 
